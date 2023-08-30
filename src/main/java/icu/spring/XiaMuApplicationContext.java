@@ -4,6 +4,8 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -13,6 +15,7 @@ public class XiaMuApplicationContext {
 
     private ConcurrentMap<String, Object> singletonObjects = new ConcurrentHashMap<>(); // 单例池
     private ConcurrentMap<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>();
+    private List<BeanPostProcessor> beanPostProcessorList = new ArrayList<>();
 
     public XiaMuApplicationContext(Class configClass) {
         this.configClass = configClass;
@@ -63,6 +66,12 @@ public class XiaMuApplicationContext {
                     try {
                         Class<?> clazz = classLoader.loadClass(clasName);
                         if (clazz.isAnnotationPresent(Component.class)) {
+
+                            if (BeanPostProcessor.class.isAssignableFrom(clazz)) {
+                                BeanPostProcessor instance = (BeanPostProcessor) clazz.getDeclaredConstructor().newInstance();
+                                beanPostProcessorList.add(instance);
+                            }
+
                             // 表示当前这个类是一个Bean
                             // 解析类-->BeanDefinition
                             Component componentAnnotation = clazz.getDeclaredAnnotation(Component.class);
@@ -80,6 +89,14 @@ public class XiaMuApplicationContext {
                             beanDefinitionMap.put(beanName, beanDefinition);
                         }
                     } catch (ClassNotFoundException e) {
+                        throw new RuntimeException(e);
+                    } catch (InvocationTargetException e) {
+                        throw new RuntimeException(e);
+                    } catch (InstantiationException e) {
+                        throw new RuntimeException(e);
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    } catch (NoSuchMethodException e) {
                         throw new RuntimeException(e);
                     }
                 }
@@ -122,9 +139,19 @@ public class XiaMuApplicationContext {
                 ((BeanNameAware) instance).setBeanName(beanName);
             }
 
+            for (BeanPostProcessor beanPostProcessor : beanPostProcessorList) {
+                instance = beanPostProcessor.postProcessBeforeInitialization(instance, beanName);
+            }
+
+            // 初始化
             if (instance instanceof InitializingBean) {
                 ((InitializingBean) instance).afterPropertiesSet();
             }
+
+            for (BeanPostProcessor beanPostProcessor : beanPostProcessorList) {
+                instance = beanPostProcessor.postProcessAfterInitialization(instance, beanName);
+            }
+
         } catch (InstantiationException e) {
             throw new RuntimeException(e);
         } catch (IllegalAccessException e) {
