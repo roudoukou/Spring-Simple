@@ -1,8 +1,8 @@
 package icu.xiamu;
 
 import icu.spring.XiaMuApplicationContext;
-import icu.xiamu.AppConfig;
 import icu.xiamu.service.UserService;
+import icu.xiamu.service.UserServiceImpl;
 
 public class Test {
     public static void main(String[] args) {
