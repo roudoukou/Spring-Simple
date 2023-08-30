@@ -15,5 +15,8 @@ public class Test {
         System.out.println("bean1 = " + bean1);
         System.out.println("bean2 = " + bean2);
         System.out.println("bean3 = " + bean3);
+
+        Object bean = xiaMuApplicationContext.getBean("123");
+        System.out.println("bean = " + bean);
     }
 }
