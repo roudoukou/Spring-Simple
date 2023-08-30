@@ -2,6 +2,7 @@ package icu.spring;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.HashMap;
@@ -17,6 +18,10 @@ public class XiaMuApplicationContext {
     public XiaMuApplicationContext(Class configClass) {
         this.configClass = configClass;
 
+        scan(configClass);
+    }
+
+    private void scan(Class configClass) {
         // 解析配置类
         // ComponentScan注解 => 扫描路径 => 扫描
 
@@ -93,6 +98,16 @@ public class XiaMuApplicationContext {
         Object instance = null;
         try {
             instance = clazz.getDeclaredConstructor().newInstance();
+
+            // 依赖注入
+            Field[] fields = clazz.getDeclaredFields();
+            for (Field field : fields) {
+                if (field.isAnnotationPresent(Autowired.class)) {
+                    Object bean = getBean(field.getName());
+                    field.setAccessible(true);
+                    field.set(instance, bean);
+                }
+            }
         } catch (InstantiationException e) {
             throw new RuntimeException(e);
         } catch (IllegalAccessException e) {
