@@ -37,7 +37,7 @@ public class XiaMuApplicationContext {
         ComponentScan componentScanAnnotation
                 = (ComponentScan) configClass.getDeclaredAnnotation(ComponentScan.class);
         String path = componentScanAnnotation.value();
-        System.out.println(path);
+        // System.out.println(path);
 
         // 扫描
         // Bootstrap --> jre/lib
@@ -48,7 +48,7 @@ public class XiaMuApplicationContext {
         URL resource = classLoader.getResource(path);
         String fileResource = resource.getFile();
         File file = new File(fileResource);
-        System.out.println(file);
+        // System.out.println(file);
         if (file.isDirectory()) {
             File[] files = file.listFiles();
             for (File f : files) {
@@ -59,7 +59,7 @@ public class XiaMuApplicationContext {
                             = absolutePath.substring(absolutePath.indexOf("icu"),
                             absolutePath.indexOf(".class"));
                     clasName = clasName.replace("\\", ".");
-                    System.out.println(clasName);
+                    // System.out.println(clasName);
                     try {
                         Class<?> clazz = classLoader.loadClass(clasName);
                         if (clazz.isAnnotationPresent(Component.class)) {
@@ -119,7 +119,11 @@ public class XiaMuApplicationContext {
             }
 
             if (instance instanceof BeanNameAware) {
-                ((BeanNameAware)instance).setBeanName(beanName);
+                ((BeanNameAware) instance).setBeanName(beanName);
+            }
+
+            if (instance instanceof InitializingBean) {
+                ((InitializingBean) instance).afterPropertiesSet();
             }
         } catch (InstantiationException e) {
             throw new RuntimeException(e);

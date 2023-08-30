@@ -10,6 +10,6 @@ public class Test {
 
         XiaMuApplicationContext xiaMuApplicationContext = new XiaMuApplicationContext(AppConfig.class);
         UserService userService = (UserService) xiaMuApplicationContext.getBean("userService");
-        userService.testOrder();
+        // userService.testOrder();
     }
 }

@@ -1,13 +1,10 @@
 package icu.xiamu.service;
 
-import icu.spring.Autowired;
-import icu.spring.BeanNameAware;
-import icu.spring.Component;
-import icu.spring.Scope;
+import icu.spring.*;
 
 @Component("userService")
 @Scope("prototype")
-public class UserService implements BeanNameAware {
+public class UserService implements BeanNameAware, InitializingBean {
     @Autowired
     private OrderService orderService;
 
@@ -21,5 +18,10 @@ public class UserService implements BeanNameAware {
     @Override
     public void setBeanName(String name) {
         beanName = name;
+    }
+
+    @Override
+    public void afterPropertiesSet() {
+        System.out.println("初始化");
     }
 }
