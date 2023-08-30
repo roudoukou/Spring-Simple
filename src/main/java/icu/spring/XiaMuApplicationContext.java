@@ -1,11 +1,10 @@
 package icu.spring;
 
 import java.io.File;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -19,6 +18,16 @@ public class XiaMuApplicationContext {
         this.configClass = configClass;
 
         scan(configClass);
+
+        for (Map.Entry<String, BeanDefinition> entry : beanDefinitionMap.entrySet()) {
+            String beanName = entry.getKey();
+            BeanDefinition beanDefinition = entry.getValue();
+            if (beanDefinition.getScope().equals("singleton")) {
+                Object bean = createBean(beanName, beanDefinition);
+                singletonObjects.put(beanName, bean);
+            }
+        }
+
     }
 
     private void scan(Class configClass) {
@@ -85,7 +94,7 @@ public class XiaMuApplicationContext {
                 return beanDefinitionMap.get(beanName);
             } else {
                 // 创建bean对象
-                return createBean(beanDefinition);
+                return createBean(beanName, beanDefinition);
             }
         } else {
             // 不存在对应的bean
@@ -93,7 +102,7 @@ public class XiaMuApplicationContext {
         }
     }
 
-    private Object createBean(BeanDefinition beanDefinition) {
+    private Object createBean(String beanName, BeanDefinition beanDefinition) {
         Class clazz = beanDefinition.getClazz();
         Object instance = null;
         try {
@@ -107,6 +116,10 @@ public class XiaMuApplicationContext {
                     field.setAccessible(true);
                     field.set(instance, bean);
                 }
+            }
+
+            if (instance instanceof BeanNameAware) {
+                ((BeanNameAware)instance).setBeanName(beanName);
             }
         } catch (InstantiationException e) {
             throw new RuntimeException(e);
